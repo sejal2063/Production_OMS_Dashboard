@@ -150,6 +150,7 @@
             border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
         }
+        .sheet-panel.is-hidden { display: none; }
         .sheet-panel input {
             flex: 1;
             min-width: 320px;
@@ -603,7 +604,7 @@
     <!-- ============================================================
     SHEET PANEL (only in standalone version)
     ============================================================ -->
-    <div class="sheet-panel">
+    <div class="sheet-panel" id="sheetPanel">
         <input id="sheetUrlInput" type="text" placeholder="Apps Script Web App URL (…/exec) for live sync" />
         <button id="loadBtn">Load live data</button>
         <button id="saveBtn" class="secondary">Save URL</button>
@@ -1027,10 +1028,19 @@
         const chartRegistry = {};
 
         function makeChart(id, config) {
-            if (chartRegistry[id]) chartRegistry[id].destroy();
             const ctx = document.getElementById(id);
-            if (!ctx) return;
-            chartRegistry[id] = new Chart(ctx, config);
+            if (!ctx) return; // canvas not in DOM right now — skip safely
+
+            if (chartRegistry[id]) {
+                try { chartRegistry[id].destroy(); }
+                catch (e) { /* stale instance — ignore and recreate below */ }
+                delete chartRegistry[id];
+            }
+            try {
+                chartRegistry[id] = new Chart(ctx, config);
+            } catch (e) {
+                console.error('Chart render failed for', id, e);
+            }
         }
 
         // ============================================================
@@ -1166,6 +1176,7 @@
                 omsLiveData = true;
                 localStorage.setItem('productionSheetUrl', targetUrl);
                 setSheetStatus('Production data loaded successfully.');
+                try { initProductChips(); } catch (e) { console.error('initProductChips failed', e); }
                 renderAll();
             } catch (err) {
                 console.error(err);
@@ -1184,15 +1195,13 @@
             if (syncLabel) syncLabel.textContent = 'Last sync: ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit',
                 minute: '2-digit' });
 
-            // Render each page
-            renderOverview(orders);
-            renderPipeline(orders);
-            renderRework();
-            renderWeekly();
-            renderDaily();
-            renderTeam();
-            renderTargets();
-            renderInsights(orders);
+            // Render each page (each wrapped so one bad panel can't blank the rest)
+            const renderers = [renderOverview, renderPipeline, renderRework, renderWeekly, renderDaily, renderTeam,
+                renderTargets, renderInsights];
+            renderers.forEach(fn => {
+                try { fn === renderOverview || fn === renderPipeline || fn === renderInsights ? fn(orders) : fn(); }
+                catch (e) { console.error('Render error in', fn.name, e); }
+            });
         }
 
         // ============================================================
@@ -1710,13 +1719,21 @@
         function initProductChips() {
             const allProducts = [...new Set(RAW.orders.map(o => o.product).filter(Boolean))];
             activeProducts = new Set(allProducts);
-            const chipRow = document.querySelector('.filterbar .chip-row');
+            let chipRow = document.querySelector('.filterbar .chip-row');
             if (!chipRow) {
-                // create if missing
-                const group = document.querySelector('.filter-group:last-child');
+                // create if missing — insert right after the last .filter-group in the filter bar
+                const filterbar = document.querySelector('.filterbar');
+                const groups = document.querySelectorAll('.filterbar .filter-group');
+                const lastGroup = groups.length ? groups[groups.length - 1] : null;
                 const row = document.createElement('div');
                 row.className = 'chip-row';
-                group.parentNode.insertBefore(row, group.nextSibling);
+                if (lastGroup && lastGroup.parentNode) {
+                    lastGroup.parentNode.insertBefore(row, lastGroup.nextSibling);
+                } else if (filterbar) {
+                    filterbar.appendChild(row);
+                } else {
+                    return; // no filter bar in DOM at all — nothing to attach to
+                }
                 chipRow = row;
             }
             chipRow.innerHTML = '';
@@ -1733,7 +1750,7 @@
                 chipRow.appendChild(chip);
             });
         }
-        initProductChips();
+        try { initProductChips(); } catch (e) { console.error('initProductChips failed', e); }
 
         // ============================================================
         //  SHEET CONTROLS (standalone)
@@ -1748,17 +1765,33 @@
             localStorage.setItem('productionSheetUrl', url);
             setSheetStatus('URL saved. Click Load to fetch data.');
         });
-        // Auto-load saved URL
+        /* ================== LIVE DATA WIRING ================== */
+        // Paste the /exec URL you get after deploying Code.gs on the
+        // Production 2026 sheet (1Fjt_RQPN7soYIGqttRZxMQNtuFamsD1PIZz-Vq025kQ) here.
+        const DEFAULT_SCRIPT_URL = "PASTE_YOUR_DEPLOYED_APPS_SCRIPT_EXEC_URL_HERE";
+        const HAS_DEFAULT_URL = DEFAULT_SCRIPT_URL.indexOf('PASTE_') !== 0;
+
+        if (!localStorage.getItem('productionSheetUrl') && HAS_DEFAULT_URL) {
+            localStorage.setItem('productionSheetUrl', DEFAULT_SCRIPT_URL);
+        }
+
+        // Once a real URL is baked in, hide the manual "paste URL" bar —
+        // end users of the deployed dashboard should never need to see it.
+        if (HAS_DEFAULT_URL) {
+            const panel = document.getElementById('sheetPanel');
+            if (panel) panel.classList.add('is-hidden');
+        }
+
+        // Auto-load saved (or default) URL
         const saved = localStorage.getItem('productionSheetUrl');
         if (saved) {
             document.getElementById('sheetUrlInput').value = saved;
-            // optionally auto-load
             loadProductionData(saved);
         }
 
         // Auto-refresh every 30 seconds
         setInterval(() => {
-            const url = document.getElementById('sheetUrlInput').value;
+            const url = document.getElementById('sheetUrlInput').value || localStorage.getItem('productionSheetUrl');
             if (url) loadProductionData(url);
         }, 30000);
 

@@ -640,7 +640,7 @@
         </div>
         <div class="filter-group">
             <span class="filter-label">Search</span>
-            <input class="filt-input" id="globalSearch" placeholder="Search client, product, supervisor..." />
+            <input class="filt-input" id="globalSearch" placeholder="Search client, product, status, dates..." />
         </div>
         <button class="action-btn secondary" id="clearFiltersBtn">Clear</button>
         <button class="action-btn" id="applyFiltersBtn">Apply</button>
@@ -1697,6 +1697,10 @@
             searchTerm = '';
             document.getElementById('statusFilter').value = 'all';
             document.getElementById('globalSearch').value = '';
+            // also reset product chips back to "all selected"
+            const allProducts = [...new Set(RAW.orders.map(o => o.product).filter(Boolean))];
+            activeProducts = new Set(allProducts);
+            document.querySelectorAll('.filterbar .chip-row .chip').forEach(chip => chip.classList.add('on'));
             renderAll();
         });
         document.getElementById('applyFiltersBtn').addEventListener('click', () => renderAll());
@@ -1768,7 +1772,7 @@
         /* ================== LIVE DATA WIRING ================== */
         // Paste the /exec URL you get after deploying Code.gs on the
         // Production 2026 sheet (1Fjt_RQPN7soYIGqttRZxMQNtuFamsD1PIZz-Vq025kQ) here.
-        const DEFAULT_SCRIPT_URL = "PASTE_YOUR_DEPLOYED_APPS_SCRIPT_EXEC_URL_HERE";
+        const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9orsp09nYI7VZz8p_U5cSxNjKEPxfIL5iDz7W7c-9xT9KuW6IkxinpA0KVd72cnlc/exec";
         const HAS_DEFAULT_URL = DEFAULT_SCRIPT_URL.indexOf('PASTE_') !== 0;
 
         if (!localStorage.getItem('productionSheetUrl') && HAS_DEFAULT_URL) {

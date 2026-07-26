@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OMS Production Intelligence — Manufacturing Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        /* ============================================================
+               PRODUCTION DASHBOARD STYLES (same as Operations)
+               ============================================================ */
+        :root {
+            --bg: #11141B;
+            --panel: #181C26;
+            --panel2: #1E2330;
+            --border: #2A2F3D;
+            --text: #F2F4F8;
+            --muted: #8B93A7;
+            --muted2: #5C6478;
+            --gold: #E3A73B;
+            --teal: #17A398;
+            --coral: #E2574C;
+            --green: #3CB878;
+            --blue: #4C8DF6;
+            --violet: #9B7BE0;
+            --gold-bg: #3A2E15;
+            --teal-bg: #0F2E2C;
+            --coral-bg: #341A18;
+            --green-bg: #12301F;
+            --blue-bg: #152238;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+        h1,
+        h2,
+        h3,
+        .display {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* ---- Top bar ---- */
+        .topbar {
+            background: linear-gradient(135deg, #161A24, #1B2130);
+            border-bottom: 1px solid var(--border);
+            padding: 18px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--gold), var(--coral));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Grotesk';
+            font-weight: 700;
+            color: #1a1208;
+            font-size: 15px;
+        }
+        .brand-text h1 {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+        .brand-text p {
+            font-size: 11.5px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            flex-wrap: wrap;
+        }
+        .topbar-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, .04);
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+        }
+        .badge-live {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--green-bg);
+            color: var(--green);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+        .toolbar-btn,
+        .profile-pill {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: 999px;
+            min-width: 36px;
+            min-height: 36px;
+        }
+        .toolbar-btn:hover {
+            background: rgba(255, 255, 255, .12);
+        }
+        .profile-pill {
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold), var(--coral));
+            color: #1a1208;
+        }
+
+        /* ---- Sheet panel ---- */
+        .sheet-panel {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 28px;
+            background: var(--panel2);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .sheet-panel input {
+            flex: 1;
+            min-width: 320px;
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        .sheet-panel button {
+            background: linear-gradient(135deg, var(--gold), var(--coral));
+            color: #15110D;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .sheet-panel button.secondary {
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .sheet-status {
+            font-size: 11.5px;
+            color: var(--muted);
+        }
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 1.8s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                opacity: 1
+            }
+            50% {
+                opacity: .35
+            }
+            100% {
+                opacity: 1
+            }
+        }
+
+        /* ---- Tabs ---- */
+        .tabbar {
+            display: flex;
+            gap: 2px;
+            padding: 0 28px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 13px 16px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 2.5px solid transparent;
+            white-space: nowrap;
+            transition: all .15s;
+        }
+        .tab:hover {
+            color: var(--text);
+        }
+        .tab.active {
+            color: var(--gold);
+            border-bottom-color: var(--gold);
+        }
+
+        /* ---- Filter bar ---- */
+        .filterbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 28px;
+            background: var(--panel2);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .filter-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--muted2);
+            font-weight: 700;
+        }
+        select.filt,
+        input.filt-input {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 7px 12px;
+            border-radius: 7px;
+            font-size: 12.5px;
+            font-family: 'Inter';
+            cursor: pointer;
+        }
+        input.filt-input {
+            min-width: 220px;
+        }
+        .filterbar .action-btn {
+            border: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold), var(--coral));
+            color: #1c140a;
+        }
+        .filterbar .action-btn.secondary {
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .chip-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .chip {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+            background: var(--panel);
+        }
+        .chip.on {
+            background: var(--gold);
+            color: #1a1305;
+            border-color: var(--gold);
+        }
+
+        /* ---- Main ---- */
+        .wrap {
+            padding: 24px 28px 60px;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+            animation: fadein .25s ease;
+        }
+        @keyframes fadein {
+            from {
+                opacity: 0;
+                transform: translateY(4px)
+            }
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+        @media(max-width:1100px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .kpi {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            border-left: 3px solid var(--gold);
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi.c-teal {
+            border-left-color: var(--teal);
+        }
+        .kpi.c-coral {
+            border-left-color: var(--coral);
+        }
+        .kpi.c-green {
+            border-left-color: var(--green);
+        }
+        .kpi.c-blue {
+            border-left-color: var(--blue);
+        }
+        .kpi.c-violet {
+            border-left-color: var(--violet);
+        }
+        .kpi-label {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+        .kpi-value {
+            font-family: 'Space Grotesk';
+            font-size: 26px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+        .kpi-sub {
+            font-size: 11px;
+            color: var(--muted2);
+            margin-top: 5px;
+        }
+        .kpi-sub.up {
+            color: var(--green);
+        }
+        .kpi-sub.down {
+            color: var(--coral);
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .grid3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        @media(max-width:1000px) {
+            .grid2,
+            .grid3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+        }
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+        .card-tag {
+            font-size: 10px;
+            color: var(--muted2);
+            background: var(--panel2);
+            padding: 3px 9px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+        .chart-box {
+            position: relative;
+            height: 260px;
+        }
+        .chart-box.tall {
+            height: 320px;
+        }
+        .chart-box.short {
+            height: 200px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+        th {
+            text-align: left;
+            padding: 9px 10px;
+            color: var(--muted);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+        }
+        td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #21252F;
+            color: #D7DCE6;
+        }
+        tr:hover td {
+            background: #1D2230;
+        }
+        .pill {
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 10.5px;
+            font-weight: 700;
+        }
+        .pill.good {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+        .pill.mid {
+            background: var(--gold-bg);
+            color: var(--gold);
+        }
+        .pill.bad {
+            background: var(--coral-bg);
+            color: var(--coral);
+        }
+
+        .scroll-y {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .scroll-y::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scroll-y::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .insight-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .insight-item {
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: var(--panel2);
+            border: 1px solid var(--border);
+            color: #DDE3EE;
+            font-size: 12.5px;
+            line-height: 1.5;
+        }
+        .insight-item strong {
+            color: #fff;
+        }
+
+        .metric-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .metric-pill {
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: var(--panel2);
+            border: 1px solid var(--border);
+        }
+        .metric-pill strong {
+            display: block;
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .stage-flow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .stage-chip {
+            padding: 8px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: #DDE3EE;
+        }
+        .stage-chip.good {
+            border-color: rgba(60, 184, 120, .35);
+            color: var(--green);
+        }
+        .stage-chip.warn {
+            border-color: rgba(227, 167, 59, .35);
+            color: var(--gold);
+        }
+        .stage-chip.bad {
+            border-color: rgba(226, 87, 76, .35);
+            color: var(--coral);
+        }
+
+        .enterprise-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        @media(max-width:1000px) {
+            .enterprise-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 22px;
+            color: var(--muted2);
+            font-size: 11px;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+    TOPBAR
+    ============================================================ -->
+    <div class="topbar">
+        <div class="brand">
+            <div class="brand-mark">P</div>
+            <div class="brand-text">
+                <h1>Production Intelligence</h1>
+                <p>Manufacturing Command Center · OMS Production 2026</p>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-meta"><span id="dateRangeLabel">All orders</span></div>
+            <div class="topbar-meta"><span id="liveClock">--:--</span></div>
+            <div class="topbar-meta"><span id="lastSyncLabel">Last sync: live</span></div>
+            <div class="badge-live"><span class="dot"></span> Google Sheet live</div>
+            <button class="toolbar-btn" title="Refresh" onclick="loadProductionData()">↻</button>
+            <button class="profile-pill" title="Production View">PV</button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    SHEET PANEL (only in standalone version)
+    ============================================================ -->
+    <div class="sheet-panel">
+        <input id="sheetUrlInput" type="text" placeholder="Apps Script Web App URL (…/exec) for live sync" />
+        <button id="loadBtn">Load live data</button>
+        <button id="saveBtn" class="secondary">Save URL</button>
+        <span class="sheet-status" id="sheetStatus">Using bundled sample data. Paste the Apps Script URL and click Load.</span>
+    </div>
+
+    <!-- ============================================================
+    TAB BAR
+    ============================================================ -->
+    <div class="tabbar" id="tabbar">
+        <div class="tab active" data-page="overview">Overview</div>
+        <div class="tab" data-page="pipeline">Production Pipeline</div>
+        <div class="tab" data-page="rework">Rework &amp; Mistakes</div>
+        <div class="tab" data-page="weekly">Weekly Reports</div>
+        <div class="tab" data-page="daily">Daily Production</div>
+        <div class="tab" data-page="team">Team Performance</div>
+        <div class="tab" data-page="targets">Targets &amp; Planning</div>
+        <div class="tab" data-page="insights">AI Insights</div>
+    </div>
+
+    <!-- ============================================================
+    FILTER BAR
+    ============================================================ -->
+    <div class="filterbar">
+        <div class="filter-group">
+            <span class="filter-label">Status</span>
+            <select class="filt" id="statusFilter">
+                <option value="all">All statuses</option>
+                <option value="⏳ IN PROGRESS">In Progress</option>
+                <option value="⚠ DELAYED">Delayed</option>
+                <option value="✓ COMPLETE">Complete</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Search</span>
+            <input class="filt-input" id="globalSearch" placeholder="Search client, product, supervisor..." />
+        </div>
+        <button class="action-btn secondary" id="clearFiltersBtn">Clear</button>
+        <button class="action-btn" id="applyFiltersBtn">Apply</button>
+    </div>
+
+    <!-- ============================================================
+    PAGES
+    ============================================================ -->
+    <div class="wrap">
+
+        <!-- ==================== OVERVIEW ==================== -->
+        <div class="page active" id="page-overview">
+            <div class="kpi-grid" id="kpiOverview"></div>
+            <div class="enterprise-grid">
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Production Pulse</span><span class="card-tag">executive view</span></div>
+                    <div id="executiveInsights"></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Manufacturing Flow</span><span class="card-tag">16 stages</span></div>
+                    <div id="manufacturingFlow"></div>
+                </div>
+            </div>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Overall Order Status</span></div>
+                    <div class="chart-box tall"><canvas id="chOverviewStatus"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Stage On-Time vs Delayed (top 8)</span></div>
+                    <div class="chart-box tall"><canvas id="chOverviewStages"></canvas></div>
+                </div>
+            </div>
+            <div class="grid3">
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Rework Status</span></div>
+                    <div class="chart-box short"><canvas id="chOverviewRework"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Weekly Production Done</span></div>
+                    <div class="chart-box short"><canvas id="chOverviewWeekly"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Mistakes by Team</span></div>
+                    <div class="chart-box short"><canvas id="chOverviewMistakes"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PRODUCTION PIPELINE ==================== -->
+        <div class="page" id="page-pipeline">
+            <div class="kpi-grid" id="kpiPipeline"></div>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-head"><span class="card-title">On-Time % by Stage</span><span class="card-tag">16 stages</span></div>
+                    <div class="chart-box tall"><canvas id="chPipelineStages"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Product Type Mix</span></div>
+                    <div class="chart-box tall"><canvas id="chPipelineProduct"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-head"><span class="card-title">Order Tracker</span><span class="card-tag" id="pipelineRowCount"></span></div>
+                <div class="scroll-y"><table id="tblPipeline"></table></div>
+            </div>
+        </div>
+
+        <!-- ==================== REWORK & MISTAKES ==================== -->
+        <div class="page" id="page-rework">
+            <div class="kpi-grid" id="kpiRework"></div>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Mistakes by Responsible Person</span></div>
+                    <div class="chart-box tall"><canvas id="chReworkPerson"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Mistakes by Date</span></div>
+                    <div class="chart-box tall"><canvas id="chReworkDate"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-head"><span class="card-title">Mistake Log</span></div>
+                <div class="scroll-y"><table id="tblRework"></table></div>
+            </div>
+        </div>
+
+        <!-- ==================== WEEKLY REPORTS ==================== -->
+        <div class="page" id="page-weekly">
+            <div class="kpi-grid" id="kpiWeekly"></div>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Weekly Production Count</span></div>
+                    <div class="chart-box tall"><canvas id="chWeeklyCount"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Weekly Status Distribution</span></div>
+                    <div class="chart-box tall"><canvas id="chWeeklyStatus"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-head"><span class="card-title">Weekly Order Done Log</span></div>
+                <div class="scroll-y"><table id="tblWeekly"></table></div>
+            </div>
+        </div>
+
+        <!-- ==================== DAILY PRODUCTION ==================== -->
+        <div class="page" id="page-daily">
+            <div class="kpi-grid" id="kpiDaily"></div>
+            <div class="card">
+                <div class="card-head"><span class="card-title">Daily Production — July 2026</span></div>
+                <div class="scroll-y"><table id="tblDaily"></table></div>
+            </div>
+        </div>
+
+        <!-- ==================== TEAM PERFORMANCE ==================== -->
+        <div class="page" id="page-team">
+            <div class="kpi-grid" id="kpiTeam"></div>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Team Production Count</span></div>
+                    <div class="chart-box tall"><canvas id="chTeamCount"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Team Mistakes</span></div>
+                    <div class="chart-box tall"><canvas id="chTeamMistakes"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-head"><span class="card-title">Production Team Plan</span></div>
+                <div class="scroll-y"><table id="tblTeam"></table></div>
+            </div>
+        </div>
+
+        <!-- ==================== TARGETS & PLANNING ==================== -->
+        <div class="page" id="page-targets">
+            <div class="kpi-grid" id="kpiTargets"></div>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Weekly Target Progress</span></div>
+                    <div class="chart-box tall"><canvas id="chTargetProgress"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Target Status Mix</span></div>
+                    <div class="chart-box tall"><canvas id="chTargetStatus"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-head"><span class="card-title">Weekly Targets</span></div>
+                <div class="scroll-y"><table id="tblTargets"></table></div>
+            </div>
+        </div>
+
+        <!-- ==================== AI INSIGHTS ==================== -->
+        <div class="page" id="page-insights">
+            <div class="kpi-grid" id="kpiInsights"></div>
+            <div class="grid2">
+                <div class="card">
+                    <div class="card-head"><span class="card-title">AI-Generated Insights</span><span class="card-tag">auto</span></div>
+                    <div id="aiInsightsList" class="insight-list"></div>
+                </div>
+                <div class="card">
+                    <div class="card-head"><span class="card-title">Data Quality — Duplicate Names</span></div>
+                    <div id="dupNamesList" class="insight-list"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-head"><span class="card-title">Live Sync Report</span><span class="card-tag" id="liveSyncTag">last comparison</span></div>
+                <div id="liveSyncReport" class="insight-list"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>Production Intelligence — built from OMS Production 2026 source data · All charts recompute from live filters</footer>
+
+    <!-- ============================================================
+    CHART.JS
+    ============================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js">
+    </script>
+
+    <!-- ============================================================
+    DASHBOARD JAVASCRIPT
+    ============================================================ -->
+    <script>
+        // ============================================================
+        //  DATA LAYER
+        // ============================================================
+
+        // Stage names (must match the sheet's 16 stages)
+        const STAGE_NAMES = [
+            'Order Received / Check PDF',
+            'BOM Preparation / Stock Check',
+            'Production Planning / Purchase Ready',
+            'Cutlist Preparation',
+            'Plywood Pressing / Offload',
+            'Plywood Cutting',
+            'Growming / Check Panel',
+            'Edge Banding',
+            '36 mm / Sandwich Design',
+            'Shorting / Cleaning',
+            'Handle Fitting',
+            'Handle Khancha / T Patti',
+            'Quality Check',
+            'Order Packing',
+            'Box Count / Order Done',
+            'Invoice / Billing'
+        ];
+
+        // RAW data object – will be populated from live sheet or sample
+        const RAW = {
+            orders: [],
+            mistakes: [],
+            weekly: [],
+            daily: [],
+            team: [],
+            targets: [],
+            dailyProduction: []
+        };
+
+        // ---- sample data (fallback) ----
+        function buildSampleOrders() {
+            const baseDate = new Date('2026-06-01');
+            const clients = ['MR. KRISHANA BAVISKAR', 'MR. MUKESH SATHE', 'MR. PRAKASH HARKE', 'MR. SACHIN DESAI',
+                'MR. AMOL JADHAV', 'MR. BHARAT VYVHARE', 'MR. SUNIL PAWAR', 'MR. AMAR YADAV',
+                'MR. BHAIRAV BAVISKAR', 'MR. SUNIL ILAG', 'MR. BHAGWAN BHOYE', 'MR. AKSHAY NAGARE',
+                'MR. SACHIN DAWANGE', 'MR. KISHOR PATIL', 'MRS. SONAL MINAL', 'MR. RAOSAHEB MOGAL',
+                'MR. UTTAM AHIRE', 'MR. ANKITA SALVE', 'MRS. UJWALA ANBHULE', 'MR. SATISH MALI'
+            ];
+            const products = ['KITCHEN', 'BEDROOM', '2 BHK', '1 BHK', '3 BHK', 'TV UNIT + KITCHEN', 'BED', 'BOTH'];
+            const statuses = ['✓ COMPLETE', '⚠ DELAYED', '⏳ IN PROGRESS'];
+            const orders = [];
+            for (let i = 0; i < 30; i++) {
+                const d = new Date(baseDate);
+                d.setDate(d.getDate() + i * 2);
+                const status = statuses[i % statuses.length];
+                const stages = STAGE_NAMES.map((name, idx) => {
+                    const p = new Date(d);
+                    p.setDate(p.getDate() + idx + 1);
+                    const a = new Date(p);
+                    a.setDate(a.getDate() + (idx % 3 === 0 ? 1 : 0));
+                    const st = idx < 5 ? '✓ ON TIME' : (idx % 4 === 0 ? '⚠ DELAYED' : '✓ ON TIME');
+                    return { name, planned: p.toISOString().slice(0, 10), actual: a.toISOString().slice(0, 10),
+                        status: st };
+                });
+                orders.push({
+                    sr: i + 1,
+                    client: clients[i % clients.length],
+                    order_date: d.toISOString().slice(0, 10),
+                    product: products[i % products.length],
+                    delivery_date: new Date(d.getTime() + 30 * 86400000).toISOString().slice(0, 10),
+                    overall_status: status,
+                    stages: stages
+                });
+            }
+            return orders;
+        }
+
+        // ---- initialise with sample ----
+        RAW.orders = buildSampleOrders();
+        RAW.mistakes = [
+            { date: '2026-07-02', client: 'VISHAL GHADGE', mistake: '4 PANNLE ULTA GROOVE MARA', person: 'AMIT JI',
+                amt: 100 },
+            { date: '2026-07-04', client: 'WALMIK THAKRE', mistake: 'PANNLE MISSING', person: 'SHINDE SIR', amt: 100 },
+            { date: '2026-07-07', client: 'PRAMOD GADARE', mistake: '3 DOOR KAM KATE', person: 'MUKUL JI', amt: 100 },
+            { date: '2026-07-07', client: 'KALPANA MORE', mistake: 'DOOR COLOUR CHANGE', person: 'MUKUL JI', amt: 100 },
+            { date: '2026-07-09', client: 'VISHAL BHOSLE', mistake: '6 PANNLE GROOVE ULTA MARA', person: 'MUKUL JI',
+                amt: 100 },
+            { date: '2026-07-13', client: 'SOMNATH MALI', mistake: 'CUTTING MISTAKE', person: 'NIKHIL SONAWANE',
+                amt: 100 },
+            { date: '2026-07-13', client: 'SACHIN SALI', mistake: 'DAMAGE PANNLE', person: 'QC TEAM', amt: 100 },
+            { date: '2026-07-14', client: 'PRATIK BADHE', mistake: 'SCRATCHING IN 11 PANNLE', person: 'NIKHIL SONAWANE',
+                amt: 100 },
+            { date: '2026-07-16', client: 'WALMIK THAKARE', mistake: 'CUTTING MISTAKE', person: 'AMIT PAL', amt: 100 },
+            { date: '2026-07-17', client: 'CHANDRASHEKHAR', mistake: 'BIDDING MISTAKE', person: 'RAJ KUMAR', amt: 100 },
+            { date: '2026-07-20', client: 'SOMESH JADHAV', mistake: 'WRONG MEASUREMENT', person: 'ARUN JI', amt: 100 },
+            { date: '2026-07-21', client: 'GOVIND BHAMARE', mistake: '4 PANNLE BIDDING PROBLEM', person: 'RAJ KUMAR',
+                amt: 100 },
+        ];
+        RAW.weekly = [
+            { week: '12 JUN TO 16 JUN', orders: 11, ontime: 9, delayed: 2 },
+            { week: '18 JUN TO 23 JUN', orders: 8, ontime: 6, delayed: 2 },
+            { week: '25 JUN TO 30 JUN', orders: 7, ontime: 7, delayed: 0 },
+            { week: '02 JUL TO 07 JUL', orders: 12, ontime: 10, delayed: 2 },
+            { week: '09 JUL TO 14 JUL', orders: 10, ontime: 9, delayed: 1 },
+            { week: '16 JUL TO 21 JUL', orders: 8, ontime: 7, delayed: 1 },
+            { week: '23 JUL TO 28 JUL', orders: 6, ontime: 6, delayed: 0 },
+        ];
+        RAW.daily = [
+            { sr: 1, client: 'MR WALMIK THAKRE', received: '2026-05-14', dispatch: '2026-07-05', status: 'DONE',
+                stages: [true, true, true, true, true, true, true, true, true] },
+            { sr: 2, client: 'MR AJIT PAGAR', received: '2026-06-04', dispatch: '2026-07-02', status: 'DONE',
+                stages: [true, true, true, true, true, true, true, true, true] },
+            { sr: 3, client: 'MR PRAMOD GADARE', received: '2026-06-04', dispatch: '2026-07-03', status: 'DONE',
+                stages: [true, true, true, true, true, true, true, true, true] },
+            { sr: 4, client: 'MR. RAJENDRA SINGH', received: '2026-06-07', dispatch: '2026-07-12', status: 'DONE',
+                stages: [true, true, true, true, true, true, true, true, true] },
+            { sr: 5, client: 'MR. PRASHANT KHEDKAR', received: '2026-06-08', dispatch: '2026-07-02', status: 'DONE',
+                stages: [true, true, true, true, true, true, true, true, true] },
+            { sr: 6, client: 'MR. SURESH GHODKE', received: '2026-06-11', dispatch: '2026-07-02', status: 'DONE',
+                stages: [true, true, true, true, true, true, true, true, true] },
+        ];
+        RAW.team = [
+            { team: 'MUKUL JI', cutlist: 15, pressing: 69, cutting: 23, grooming: 56, bidding: 236, handle: 12,
+                packing: 25, qc: 6 },
+            { team: 'NIKHIL SONAWANE', cutlist: 12, pressing: 26, cutting: 92, grooming: 35, bidding: 301, handle: 1,
+                packing: 0, qc: 0 },
+            { team: 'RAJ PAL', cutlist: 8, pressing: 35, cutting: 85, grooming: 85, bidding: 202, handle: 13,
+                packing: 81, qc: 0 },
+            { team: 'PANKAJ MAURYA', cutlist: 7, pressing: 22, cutting: 15, grooming: 145, bidding: 284, handle: 21,
+                packing: 0, qc: 6 },
+        ];
+        RAW.targets = [
+            { week: '04-07-2026 TO 07-07-2026', entries: [{ client: 'MR PRAMOD GADARE', target_date: '2026-07-03',
+                    status: 'RUNNING' }, { client: 'MR WALMIK THAKRE', target_date: '2026-07-05', status: 'DONE' },
+                { client: 'MR. VISHWAS PATIL', target_date: '2026-07-05', status: 'DONE' }] },
+            { week: '09-07-2026 TO 14-07-2026', entries: [{ client: 'MR PRAMOD GADARE', target_date: '2026-07-03',
+                    status: 'RUNNING' }, { client: 'MR. RAHUL GAVIT', target_date: '2026-07-25', status: 'RUNNING' },
+                { client: 'MR. PRASHANT MAHAJAN', target_date: '2026-07-17', status: 'RUNNING' }] },
+        ];
+
+        // ============================================================
+        //  UTILITY FUNCTIONS
+        // ============================================================
+        function fmtNum(n) { if (n == null) return '—'; return Number(n).toLocaleString('en-IN'); }
+
+        function fmtPct(n) { if (n == null || isNaN(n)) return '—'; return (n * 100).toFixed(1) + '%'; }
+
+        function fmtDate(d) { if (!d) return '—'; const dt = new Date(d + 'T00:00:00'); return dt.toLocaleDateString(
+                'en-GB', { day: '2-digit', month: 'short' }); }
+
+        function statusClass(s) {
+            if (!s) return 'mid';
+            if (s.includes('COMPLETE') || s.includes('DONE') || s.includes('ON TIME')) return 'good';
+            if (s.includes('DELAYED') || s.includes('PENDING')) return 'bad';
+            return 'mid';
+        }
+
+        function countBy(arr, fn) { const out = {}; arr.forEach(r => { const k = fn(r) || 'Unspecified';
+                out[k] = (out[k] || 0) + 1; }); return out; }
+
+        // ============================================================
+        //  NAME CLEANING & DEDUPLICATION (same as Ops dashboard)
+        // ============================================================
+        const nameDedupLog = new Map();
+
+        function canonicalizeName(raw) {
+            if (raw == null) return raw;
+            const collapsed = String(raw).replace(/\s+/g, ' ').trim();
+            if (!collapsed) return collapsed;
+            const canonical = collapsed.toUpperCase();
+            if (!nameDedupLog.has(canonical)) nameDedupLog.set(canonical, new Set());
+            nameDedupLog.get(canonical).add(collapsed);
+            return canonical;
+        }
+
+        function cleanClientRecords(list, field) {
+            if (!Array.isArray(list)) return list;
+            list.forEach(rec => { if (rec && rec[field] != null && rec[field] !== '') rec[field] = canonicalizeName(
+                    rec[field]); });
+            return list;
+        }
+
+        function getDuplicateNameReport() {
+            const dups = [];
+            nameDedupLog.forEach((variants, canonical) => { if (variants.size > 1) dups.push({ canonical,
+                    variants: Array.from(variants) }); });
+            return dups.sort((a, b) => b.variants.length - a.variants.length);
+        }
+
+        function cleanAllRawTables() {
+            cleanClientRecords(RAW.orders, 'client');
+            cleanClientRecords(RAW.mistakes, 'client');
+            cleanClientRecords(RAW.daily, 'client');
+            cleanClientRecords(RAW.weekly, 'client');
+            cleanClientRecords(RAW.targets.forEach(w => w.entries.forEach(e => { if (e.client) e.client = canonicalizeName(
+                        e.client); })));
+        }
+        cleanAllRawTables();
+
+        // ============================================================
+        //  CHART REGISTRY
+        // ============================================================
+        const chartRegistry = {};
+
+        function makeChart(id, config) {
+            if (chartRegistry[id]) chartRegistry[id].destroy();
+            const ctx = document.getElementById(id);
+            if (!ctx) return;
+            chartRegistry[id] = new Chart(ctx, config);
+        }
+
+        // ============================================================
+        //  KPI CARD HELPER
+        // ============================================================
+        function kpiCard(container, label, value, sub, colorClass, subClass) {
+            const div = document.createElement('div');
+            div.className = 'kpi ' + (colorClass || '');
+            div.innerHTML =
+                `<div class="kpi-label">${label}</div><div class="kpi-value">${value}</div><div class="kpi-sub ${subClass||''}">${sub||''}</div>`;
+            container.appendChild(div);
+        }
+
+        // ============================================================
+        //  FILTERING
+        // ============================================================
+        let statusFilter = 'all';
+        let searchTerm = '';
+        let activeProducts = new Set();
+
+        function filteredOrders() {
+            return RAW.orders.filter(o => {
+                if (statusFilter !== 'all' && o.overall_status !== statusFilter) return false;
+                if (o.product && !activeProducts.has(o.product)) return false;
+                if (searchTerm) {
+                    const haystack = [o.client, o.product, o.order_date, o.delivery_date, o.overall_status]
+                        .filter(Boolean).join(' ').toLowerCase();
+                    if (!haystack.includes(searchTerm)) return false;
+                }
+                return true;
+            });
+        }
+
+        // ============================================================
+        //  STAGE SUMMARY
+        // ============================================================
+        function computeStageSummary(orders) {
+            const stageNames = orders.length ? orders[0].stages.map(s => s.name) : STAGE_NAMES;
+            return stageNames.map(name => {
+                const items = orders.map(o => o.stages.find(x => x.name === name)).filter(Boolean);
+                const onTime = items.filter(s => s.status && (s.status.includes('ON TIME') || s.status.includes(
+                    'COMPLETE'))).length;
+                const delayed = items.filter(s => s.status && s.status.includes('DELAYED')).length;
+                const pending = items.filter(s => s.status && s.status.includes('PENDING')).length;
+                const rate = items.length ? onTime / items.length : 0;
+                return { name, onTime, delayed, pending, rate, total: items.length };
+            });
+        }
+
+        // ============================================================
+        //  LIVE SYNC TRACKING
+        // ============================================================
+        let lastSyncDiff = null;
+        let omsLiveData = false;
+
+        function snapshotRaw() {
+            return {
+                orders: RAW.orders.length,
+                delayed: RAW.orders.filter(o => o.overall_status === '⚠ DELAYED').length,
+                complete: RAW.orders.filter(o => o.overall_status === '✓ COMPLETE').length,
+                inProgress: RAW.orders.filter(o => o.overall_status === '⏳ IN PROGRESS').length,
+                mistakes: RAW.mistakes.length,
+                weeklyEntries: RAW.weekly.reduce((sum, w) => sum + w.orders, 0),
+                at: new Date()
+            };
+        }
+
+        // ============================================================
+        //  DATA LOADING FROM APPS SCRIPT
+        // ============================================================
+        function normalizeSheetUrl(url) {
+            if (!url || typeof url !== 'string') return '';
+            const trimmed = url.trim();
+            if (!trimmed) return '';
+            // If it already ends with ?data=true or contains ?data=true, return as is
+            if (trimmed.includes('?data=true') || trimmed.includes('&data=true')) return trimmed;
+            // If it's a Google Sheets /exec URL, append ?data=true
+            if (trimmed.includes('/exec')) {
+                return trimmed + (trimmed.includes('?') ? '&' : '?') + 'data=true';
+            }
+            return trimmed;
+        }
+
+        function setSheetStatus(message, isError = false) {
+            const el = document.getElementById('sheetStatus');
+            if (!el) return;
+            el.textContent = message;
+            el.style.color = isError ? '#E2574C' : '#8B93A7';
+        }
+
+        function applyPayload(payload) {
+            if (!payload || !payload.success) return false;
+            if (payload.orders) RAW.orders = payload.orders;
+            if (payload.mistakes) RAW.mistakes = payload.mistakes;
+            if (payload.weekly) RAW.weekly = payload.weekly;
+            if (payload.daily) RAW.daily = payload.daily;
+            if (payload.team) RAW.team = payload.team;
+            if (payload.targets) RAW.targets = payload.targets;
+            cleanAllRawTables();
+            return true;
+        }
+
+        async function loadProductionData(url) {
+            const targetUrl = url || document.getElementById('sheetUrlInput')?.value;
+            if (!targetUrl) {
+                setSheetStatus('Please enter a valid Apps Script URL.', true);
+                return;
+            }
+            const normalized = normalizeSheetUrl(targetUrl);
+            if (!normalized) {
+                setSheetStatus('Invalid URL.', true);
+                return;
+            }
+            setSheetStatus('Loading production data...');
+            try {
+                const resp = await fetch(normalized, { cache: 'no-store' });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const json = await resp.json();
+                if (!json.success) throw new Error(json.error || 'Unknown error from server');
+                const before = snapshotRaw();
+                const applied = applyPayload(json);
+                if (!applied) throw new Error('Failed to parse data.');
+                const after = snapshotRaw();
+                lastSyncDiff = {
+                    before,
+                    after,
+                    newOrders: after.orders - before.orders,
+                    newDelayed: after.delayed - before.delayed,
+                    newComplete: after.complete - before.complete,
+                    newMistakes: after.mistakes - before.mistakes,
+                    newWeeklyEntries: after.weeklyEntries - before.weeklyEntries,
+                };
+                omsLiveData = true;
+                localStorage.setItem('productionSheetUrl', targetUrl);
+                setSheetStatus('Production data loaded successfully.');
+                renderAll();
+            } catch (err) {
+                console.error(err);
+                setSheetStatus('Error loading data: ' + err.message, true);
+            }
+        }
+
+        // ============================================================
+        //  RENDER ALL PAGES
+        // ============================================================
+        function renderAll() {
+            const orders = filteredOrders();
+            const dateLabel = document.getElementById('dateRangeLabel');
+            if (dateLabel) dateLabel.textContent = orders.length + ' of ' + RAW.orders.length + ' orders shown';
+            const syncLabel = document.getElementById('lastSyncLabel');
+            if (syncLabel) syncLabel.textContent = 'Last sync: ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit',
+                minute: '2-digit' });
+
+            // Render each page
+            renderOverview(orders);
+            renderPipeline(orders);
+            renderRework();
+            renderWeekly();
+            renderDaily();
+            renderTeam();
+            renderTargets();
+            renderInsights(orders);
+        }
+
+        // ============================================================
+        //  PAGE RENDERERS
+        // ============================================================
+
+        // ----- OVERVIEW -----
+        function renderOverview(orders) {
+            const kpi = document.getElementById('kpiOverview');
+            kpi.innerHTML = '';
+            const total = orders.length;
+            const inProgress = orders.filter(o => o.overall_status === '⏳ IN PROGRESS').length;
+            const delayed = orders.filter(o => o.overall_status === '⚠ DELAYED').length;
+            const complete = orders.filter(o => o.overall_status === '✓ COMPLETE').length;
+
+            kpiCard(kpi, 'Total Orders', fmtNum(total), 'in current filter', 'c-gold');
+            kpiCard(kpi, 'In Progress', fmtNum(inProgress), fmtPct(inProgress / Math.max(1, total)), 'c-blue');
+            kpiCard(kpi, 'Delayed', fmtNum(delayed), fmtPct(delayed / Math.max(1, total)), 'c-coral', 'down');
+            kpiCard(kpi, 'Complete', fmtNum(complete), fmtPct(complete / Math.max(1, total)), 'c-green', 'up');
+
+            // Overall status chart
+            const statusCounts = countBy(orders, o => o.overall_status);
+            makeChart('chOverviewStatus', {
+                type: 'doughnut',
+                data: { labels: Object.keys(statusCounts), datasets: [{ data: Object.values(statusCounts),
+                        backgroundColor: ['#4C8DF6', '#E2574C', '#3CB878', '#5C6478'] }] },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Stage performance
+            const stageSummary = computeStageSummary(orders);
+            const top8 = stageSummary.slice(0, 8);
+            makeChart('chOverviewStages', {
+                type: 'bar',
+                data: {
+                    labels: top8.map(s => s.name.length > 18 ? s.name.slice(0, 18) + '…' : s.name),
+                    datasets: [
+                        { label: 'On Time', data: top8.map(s => s.onTime), backgroundColor: '#3CB878' },
+                        { label: 'Delayed', data: top8.map(s => s.delayed), backgroundColor: '#E2574C' }
+                    ]
+                },
+                options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true,
+                            grid: { color: '#212633' } } } }
+            });
+
+            // Rework status
+            const mistakeStatus = countBy(RAW.mistakes, m => m.person || 'Unassigned');
+            makeChart('chOverviewRework', {
+                type: 'pie',
+                data: { labels: Object.keys(mistakeStatus), datasets: [{ data: Object.values(mistakeStatus),
+                        backgroundColor: ['#E2574C', '#E3A73B', '#4C8DF6', '#3CB878', '#9B7BE0'] }] },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Weekly done
+            const weeklyCounts = RAW.weekly.map(w => ({ label: w.week.slice(0, 12), value: w.orders }));
+            makeChart('chOverviewWeekly', {
+                type: 'bar',
+                data: { labels: weeklyCounts.map(w => w.label), datasets: [{ label: 'Orders done',
+                        data: weeklyCounts.map(w => w.value), backgroundColor: '#4C8DF6' }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true,
+                            grid: { color: '#212633' } } } }
+            });
+
+            // Mistakes by team
+            const teamMistakes = countBy(RAW.mistakes, m => m.person || 'Unknown');
+            makeChart('chOverviewMistakes', {
+                type: 'pie',
+                data: { labels: Object.keys(teamMistakes), datasets: [{ data: Object.values(teamMistakes),
+                        backgroundColor: ['#E2574C', '#E3A73B', '#4C8DF6', '#3CB878'] }] },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Executive insights
+            const execDiv = document.getElementById('executiveInsights');
+            const bottleneck = stageSummary.slice().sort((a, b) => b.delayed - a.delayed)[0];
+            const best = stageSummary.slice().sort((a, b) => b.rate - a.rate)[0];
+            execDiv.innerHTML = `
+            <div class="metric-list">
+              <div class="metric-pill"><strong>${bottleneck ? bottleneck.name : '—'}</strong><span>Top risk stage</span><div style="margin-top:4px;font-size:11px;color:var(--muted)">${bottleneck ? bottleneck.delayed+' delayed' : 'No data'}</div></div>
+              <div class="metric-pill"><strong>${best ? best.name : '—'}</strong><span>Best stage</span><div style="margin-top:4px;font-size:11px;color:var(--muted)">${best ? fmtPct(best.rate)+' on-time' : 'No data'}</div></div>
+              <div class="metric-pill"><strong>${fmtPct(complete/Math.max(1,total))}</strong><span>Completion rate</span><div style="margin-top:4px;font-size:11px;color:var(--muted)">${total} orders</div></div>
+              <div class="metric-pill"><strong>${delayed}</strong><span>Delayed orders</span><div style="margin-top:4px;font-size:11px;color:var(--muted)">Immediate attention</div></div>
+            </div>
+            <div class="insight-item" style="margin-top:10px;"><strong>Executive view:</strong> ${delayed ? `Delayed workload is concentrated around ${bottleneck ? bottleneck.name : 'operations'} and requires immediate intervention.` : 'Current workload remains healthy with no major delay concentration.'}</div>
+          `;
+
+            // Manufacturing flow
+            const flowContainer = document.getElementById('manufacturingFlow');
+            const flowStages = ['Order', 'BOM', 'Planning', 'Cutlist', 'Pressing', 'Cutting', 'Grooming', 'Edge Banding',
+                '36mm', 'Cleaning', 'Handle', 'Khancha', 'QC', 'Packing', 'Box Count', 'Invoice'
+            ];
+            flowContainer.innerHTML = `<div class="stage-flow">${flowStages.map((stage, idx) => {
+            const target = stageSummary[idx] || null;
+            const cls = target ? (target.rate >= 0.8 ? 'good' : target.rate >= 0.6 ? 'warn' : 'bad') : 'warn';
+            return `<div class="stage-chip ${cls}">${stage}${target ? ' · '+Math.round(target.rate*100)+'%' : ''}</div>`;
+          }).join('')}</div>`;
+        }
+
+        // ----- PIPELINE -----
+        function renderPipeline(orders) {
+            const kpi = document.getElementById('kpiPipeline');
+            kpi.innerHTML = '';
+            const stageNames = orders.length ? orders[0].stages.map(s => s.name) : STAGE_NAMES;
+            const stageOnTimePct = stageNames.map(name => {
+                const withStatus = orders.map(o => o.stages.find(x => x.name === name)).filter(s => s && s.status);
+                const onTime = withStatus.filter(s => s.status.includes('ON TIME') || s.status.includes(
+                    'COMPLETE')).length;
+                return withStatus.length ? onTime / withStatus.length : null;
+            });
+            const validPct = stageOnTimePct.filter(v => v != null);
+            const avgOnTime = validPct.length ? validPct.reduce((a, b) => a + b, 0) / validPct.length : 0;
+            const worstIdx = stageOnTimePct.reduce((worst, v, i) => (v != null && (worst === -1 || v < stageOnTimePct[
+                worst])) ? i : worst, -1);
+
+            kpiCard(kpi, 'Avg On-Time Rate', fmtPct(avgOnTime), 'across 16 stages', 'c-teal');
+            kpiCard(kpi, 'Weakest Stage', worstIdx >= 0 ? stageNames[worstIdx] : '—', worstIdx >= 0 ? fmtPct(
+                stageOnTimePct[worstIdx]) + ' on time' : '', 'c-coral', 'down');
+            kpiCard(kpi, 'Orders Tracked', fmtNum(orders.length), 'in current filter', 'c-gold');
+            kpiCard(kpi, 'Distinct Products', fmtNum(new Set(orders.map(o => o.product)).size), '', 'c-blue');
+
+            // Stage on-time %
+            makeChart('chPipelineStages', {
+                type: 'bar',
+                data: {
+                    labels: stageNames.map(n => n.length > 22 ? n.slice(0, 22) + '…' : n),
+                    datasets: [{ label: 'On-Time %', data: stageOnTimePct.map(v => v == null ? 0 : +(v * 100)
+                            .toFixed(1)), backgroundColor: stageOnTimePct.map(v => v == null ? '#5C6478' :
+                            v >= 0.8 ? '#3CB878' : v >= 0.5 ? '#E3A73B' : '#E2574C') }]
+                },
+                options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { min: 0,
+                            max: 100, grid: { color: '#212633' } }, y: { grid: { display: false } } } }
+            });
+
+            // Product mix
+            const prodCounts = countBy(orders, o => o.product);
+            makeChart('chPipelineProduct', {
+                type: 'doughnut',
+                data: { labels: Object.keys(prodCounts), datasets: [{ data: Object.values(prodCounts),
+                        backgroundColor: ['#E3A73B', '#17A398', '#E2574C', '#3CB878', '#4C8DF6', '#9B7BE0',
+                            '#F2A65A', '#5FD0C6'
+                        ] }] },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Order tracker table
+            const tbl = document.getElementById('tblPipeline');
+            let html =
+                '<tr><th>SR</th><th>Client</th><th>Order Date</th><th>Product</th><th>Delivery Target</th><th>Overall Status</th></tr>';
+            orders.forEach(o => {
+                html +=
+                    `<tr><td>${o.sr}</td><td>${o.client}</td><td>${fmtDate(o.order_date)}</td><td>${o.product||'—'}</td><td>${fmtDate(o.delivery_date)}</td><td><span class="pill ${statusClass(o.overall_status)}">${o.overall_status||'—'}</span></td></tr>`;
+            });
+            tbl.innerHTML = html;
+            document.getElementById('pipelineRowCount').textContent = orders.length + ' orders';
+        }
+
+        // ----- REWORK & MISTAKES -----
+        function renderRework() {
+            const kpi = document.getElementById('kpiRework');
+            kpi.innerHTML = '';
+            const mistakes = RAW.mistakes;
+            const totalMistakes = mistakes.length;
+            const totalAmt = mistakes.reduce((sum, m) => sum + (m.amt || 0), 0);
+            const uniquePersons = new Set(mistakes.map(m => m.person)).size;
+            const topPerson = mistakes.length ? Object.entries(countBy(mistakes, m => m.person || 'Unknown')).sort((a,
+                b) => b[1] - a[1])[0] : null;
+
+            kpiCard(kpi, 'Total Mistakes', fmtNum(totalMistakes), 'recorded', 'c-coral');
+            kpiCard(kpi, 'Total Penalty', '₹' + fmtNum(totalAmt), 'sum of fines', 'c-gold');
+            kpiCard(kpi, 'Distinct Persons', fmtNum(uniquePersons), 'responsible', 'c-blue');
+            kpiCard(kpi, 'Top Offender', topPerson ? topPerson[0] : '—', topPerson ? topPerson[1] + ' mistakes' : '',
+                'c-violet');
+
+            // Mistakes by person
+            const personCounts = countBy(mistakes, m => m.person || 'Unknown');
+            makeChart('chReworkPerson', {
+                type: 'bar',
+                data: { labels: Object.keys(personCounts), datasets: [{ label: 'Mistakes', data: Object.values(
+                            personCounts), backgroundColor: '#E2574C' }] },
+                options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#212633' } },
+                        y: { grid: { display: false } } } }
+            });
+
+            // Mistakes by date
+            const dateCounts = countBy(mistakes, m => m.date || 'Unknown');
+            const sortedDates = Object.keys(dateCounts).sort();
+            makeChart('chReworkDate', {
+                type: 'line',
+                data: { labels: sortedDates.map(d => fmtDate(d)), datasets: [{ label: 'Mistakes',
+                        data: sortedDates.map(d => dateCounts[d]), borderColor: '#4C8DF6', fill: true,
+                        backgroundColor: 'rgba(76,141,246,.15)', tension: .35 }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true,
+                            grid: { color: '#212633' } } } }
+            });
+
+            // Table
+            const tbl = document.getElementById('tblRework');
+            let html =
+                '<tr><th>Date</th><th>Client</th><th>Mistake</th><th>Responsible</th><th>Penalty</th></tr>';
+            mistakes.forEach(m => {
+                html +=
+                    `<tr><td>${fmtDate(m.date)}</td><td>${m.client||'—'}</td><td>${m.mistake||'—'}</td><td>${m.person||'—'}</td><td>${m.amt ? '₹'+m.amt : '—'}</td></tr>`;
+            });
+            tbl.innerHTML = html;
+        }
+
+        // ----- WEEKLY -----
+        function renderWeekly() {
+            const kpi = document.getElementById('kpiWeekly');
+            kpi.innerHTML = '';
+            const totalOrders = RAW.weekly.reduce((sum, w) => sum + w.orders, 0);
+            const totalOnTime = RAW.weekly.reduce((sum, w) => sum + w.ontime, 0);
+            const totalDelayed = RAW.weekly.reduce((sum, w) => sum + w.delayed, 0);
+            const avgOnTime = totalOrders ? totalOnTime / totalOrders : 0;
+
+            kpiCard(kpi, 'Total Weekly Orders', fmtNum(totalOrders), 'all weeks', 'c-blue');
+            kpiCard(kpi, 'On-Time', fmtNum(totalOnTime), fmtPct(avgOnTime), 'c-green', 'up');
+            kpiCard(kpi, 'Delayed', fmtNum(totalDelayed), fmtPct(totalDelayed / Math.max(1, totalOrders)), 'c-coral',
+                'down');
+            kpiCard(kpi, 'Weeks Tracked', fmtNum(RAW.weekly.length), '', 'c-gold');
+
+            // Weekly count chart
+            makeChart('chWeeklyCount', {
+                type: 'bar',
+                data: { labels: RAW.weekly.map(w => w.week.slice(0, 12)), datasets: [{ label: 'Orders',
+                        data: RAW.weekly.map(w => w.orders), backgroundColor: '#4C8DF6' }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true,
+                            grid: { color: '#212633' } } } }
+            });
+
+            // Status distribution (stacked)
+            makeChart('chWeeklyStatus', {
+                type: 'bar',
+                data: {
+                    labels: RAW.weekly.map(w => w.week.slice(0, 12)),
+                    datasets: [
+                        { label: 'On Time', data: RAW.weekly.map(w => w.ontime), backgroundColor: '#3CB878' },
+                        { label: 'Delayed', data: RAW.weekly.map(w => w.delayed), backgroundColor: '#E2574C' }
+                    ]
+                },
+                options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true,
+                            grid: { color: '#212633' } } } }
+            });
+
+            // Table (weekly summary)
+            const tbl = document.getElementById('tblWeekly');
+            let html =
+                '<tr><th>Week</th><th>Total Orders</th><th>On Time</th><th>Delayed</th><th>On-Time %</th></tr>';
+            RAW.weekly.forEach(w => {
+                const pct = w.orders ? (w.ontime / w.orders * 100).toFixed(1) : 0;
+                html +=
+                    `<tr><td>${w.week}</td><td>${w.orders}</td><td>${w.ontime}</td><td>${w.delayed}</td><td>${pct}%</td></tr>`;
+            });
+            tbl.innerHTML = html;
+        }
+
+        // ----- DAILY -----
+        function renderDaily() {
+            const kpi = document.getElementById('kpiDaily');
+            kpi.innerHTML = '';
+            const daily = RAW.daily;
+            const done = daily.filter(d => d.status && d.status.toUpperCase().includes('DONE')).length;
+            const running = daily.filter(d => d.status && d.status.toUpperCase().includes('RUNNING')).length;
+            const total = daily.length;
+
+            kpiCard(kpi, 'Total Entries', fmtNum(total), 'in July 2026', 'c-blue');
+            kpiCard(kpi, 'Done', fmtNum(done), fmtPct(done / Math.max(1, total)), 'c-green', 'up');
+            kpiCard(kpi, 'Running', fmtNum(running), fmtPct(running / Math.max(1, total)), 'c-gold');
+            kpiCard(kpi, 'Completion Rate', fmtPct(done / Math.max(1, total)), 'overall', 'c-teal');
+
+            const tbl = document.getElementById('tblDaily');
+            let html =
+                '<tr><th>SR</th><th>Client</th><th>Received</th><th>Dispatch</th><th>Status</th><th>Stages Done</th><th>Done By</th></tr>';
+            daily.forEach(d => {
+                const stageCount = d.stages ? d.stages.filter(Boolean).length : 0;
+                html +=
+                    `<tr><td>${d.sr}</td><td>${d.client||'—'}</td><td>${fmtDate(d.received_date)}</td><td>${fmtDate(d.dispatch_date)}</td><td><span class="pill ${statusClass(d.status)}">${d.status||'—'}</span></td><td>${stageCount}/9</td><td>${d.done_by_date ? fmtDate(d.done_by_date) : '—'}</td></tr>`;
+            });
+            tbl.innerHTML = html;
+        }
+
+        // ----- TEAM -----
+        function renderTeam() {
+            const kpi = document.getElementById('kpiTeam');
+            kpi.innerHTML = '';
+            const team = RAW.team;
+            const totalTeams = team.length;
+            const totalCutlist = team.reduce((s, t) => s + (t.cutlist || 0), 0);
+            const totalPacking = team.reduce((s, t) => s + (t.packing || 0), 0);
+            const totalBidding = team.reduce((s, t) => s + (t.bidding || 0), 0);
+
+            kpiCard(kpi, 'Teams Tracked', fmtNum(totalTeams), 'production teams', 'c-blue');
+            kpiCard(kpi, 'Total Cutlist', fmtNum(totalCutlist), 'cutlist checks', 'c-teal');
+            kpiCard(kpi, 'Total Bidding', fmtNum(totalBidding), 'bidding items', 'c-gold');
+            kpiCard(kpi, 'Total Packing', fmtNum(totalPacking), 'packing items', 'c-green');
+
+            // Team production (stacked bar)
+            makeChart('chTeamCount', {
+                type: 'bar',
+                data: {
+                    labels: team.map(t => t.team),
+                    datasets: [
+                        { label: 'Cutlist', data: team.map(t => t.cutlist || 0), backgroundColor: '#4C8DF6' },
+                        { label: 'Pressing', data: team.map(t => t.pressing || 0), backgroundColor: '#17A398' },
+                        { label: 'Cutting', data: team.map(t => t.cutting || 0), backgroundColor: '#E3A73B' },
+                        { label: 'Grooming', data: team.map(t => t.grooming || 0), backgroundColor: '#9B7BE0' },
+                        { label: 'Bidding', data: team.map(t => t.bidding || 0), backgroundColor: '#E2574C' },
+                    ]
+                },
+                options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true,
+                            grid: { color: '#212633' } } } }
+            });
+
+            // Team mistakes (from mistakes data)
+            const mistakeCounts = countBy(RAW.mistakes, m => m.person || 'Unknown');
+            const teamNames = team.map(t => t.team);
+            const mistakeData = teamNames.map(name => mistakeCounts[name] || 0);
+            makeChart('chTeamMistakes', {
+                type: 'bar',
+                data: { labels: teamNames, datasets: [{ label: 'Mistakes', data: mistakeData,
+                        backgroundColor: '#E2574C' }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true,
+                            grid: { color: '#212633' } } } }
+            });
+
+            // Team table
+            const tbl = document.getElementById('tblTeam');
+            let html =
+                '<tr><th>Team</th><th>Cutlist</th><th>Pressing</th><th>Cutting</th><th>Grooming</th><th>Bidding</th><th>Handle</th><th>Packing</th><th>QC</th></tr>';
+            team.forEach(t => {
+                html +=
+                    `<tr><td>${t.team}</td><td>${t.cutlist||0}</td><td>${t.pressing||0}</td><td>${t.cutting||0}</td><td>${t.grooming||0}</td><td>${t.bidding||0}</td><td>${t.handle||0}</td><td>${t.packing||0}</td><td>${t.qc||0}</td></tr>`;
+            });
+            tbl.innerHTML = html;
+        }
+
+        // ----- TARGETS -----
+        function renderTargets() {
+            const kpi = document.getElementById('kpiTargets');
+            kpi.innerHTML = '';
+            const allTargets = RAW.targets.flatMap(w => w.entries);
+            const totalTargets = allTargets.length;
+            const done = allTargets.filter(t => t.status && t.status.toUpperCase().includes('DONE')).length;
+            const running = allTargets.filter(t => t.status && t.status.toUpperCase().includes('RUNNING')).length;
+            const pending = totalTargets - done - running;
+
+            kpiCard(kpi, 'Total Targets', fmtNum(totalTargets), 'across weeks', 'c-blue');
+            kpiCard(kpi, 'Done', fmtNum(done), fmtPct(done / Math.max(1, totalTargets)), 'c-green', 'up');
+            kpiCard(kpi, 'Running', fmtNum(running), fmtPct(running / Math.max(1, totalTargets)), 'c-gold');
+            kpiCard(kpi, 'Pending', fmtNum(pending), fmtPct(pending / Math.max(1, totalTargets)), 'c-coral', 'down');
+
+            // Target progress (stacked bar per week)
+            const weekLabels = RAW.targets.map(w => w.week.slice(0, 15));
+            const weekDone = RAW.targets.map(w => w.entries.filter(e => e.status && e.status.toUpperCase().includes(
+                'DONE')).length);
+            const weekRunning = RAW.targets.map(w => w.entries.filter(e => e.status && e.status.toUpperCase().includes(
+                'RUNNING')).length);
+            const weekPending = RAW.targets.map(w => w.entries.length - weekDone[w] - weekRunning[w]);
+
+            makeChart('chTargetProgress', {
+                type: 'bar',
+                data: {
+                    labels: weekLabels,
+                    datasets: [
+                        { label: 'Done', data: weekDone, backgroundColor: '#3CB878' },
+                        { label: 'Running', data: weekRunning, backgroundColor: '#E3A73B' },
+                        { label: 'Pending', data: weekPending, backgroundColor: '#5C6478' }
+                    ]
+                },
+                options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true,
+                            grid: { color: '#212633' } } } }
+            });
+
+            // Status mix pie
+            const statusMix = { Done: done, Running: running, Pending: pending };
+            makeChart('chTargetStatus', {
+                type: 'pie',
+                data: { labels: Object.keys(statusMix), datasets: [{ data: Object.values(statusMix),
+                        backgroundColor: ['#3CB878', '#E3A73B', '#5C6478'] }] },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Table
+            const tbl = document.getElementById('tblTargets');
+            let html =
+                '<tr><th>Week</th><th>Client</th><th>Target Date</th><th>Status</th></tr>';
+            RAW.targets.forEach(w => {
+                w.entries.forEach(e => {
+                    html +=
+                        `<tr><td>${w.week}</td><td>${e.client||'—'}</td><td>${fmtDate(e.target_date)}</td><td><span class="pill ${statusClass(e.status)}">${e.status||'—'}</span></td></tr>`;
+                });
+            });
+            tbl.innerHTML = html;
+        }
+
+        // ----- INSIGHTS -----
+        function renderInsights(orders) {
+            const kpi = document.getElementById('kpiInsights');
+            kpi.innerHTML = '';
+            const dupReport = getDuplicateNameReport();
+            const delayed = RAW.orders.filter(o => o.overall_status === '⚠ DELAYED');
+            const stageSummary = computeStageSummary(RAW.orders);
+            const worstStage = stageSummary.slice().sort((a, b) => b.delayed - a.delayed)[0];
+
+            kpiCard(kpi, 'Names Cleaned', fmtNum(dupReport.length), 'distinct people merged', 'c-violet');
+            kpiCard(kpi, 'Delay Risk', fmtNum(delayed.length), fmtPct(delayed.length / Math.max(1, RAW.orders.length)),
+                'c-coral', 'down');
+            kpiCard(kpi, 'Top Bottleneck', worstStage ? worstStage.name.slice(0, 20) : '—', worstStage ? worstStage
+                .delayed + ' delayed' : '', 'c-gold');
+            kpiCard(kpi, 'Last Sync', lastSyncDiff ? lastSyncDiff.after.at.toLocaleTimeString('en-IN', { hour: '2-digit',
+                    minute: '2-digit' }) : 'Not synced yet', lastSyncDiff ? 'live sheet' : 'using bundled data',
+                'c-blue');
+
+            // AI insights list
+            const list = document.getElementById('aiInsightsList');
+            const insightLines = [];
+            if (worstStage) insightLines.push(
+                `<strong>Biggest bottleneck:</strong> "${worstStage.name}" has ${worstStage.delayed} delayed order(s) out of ${worstStage.total} tracked — investigate this stage first.`
+                );
+            if (delayed.length) insightLines.push(
+                `<strong>Delay exposure:</strong> ${delayed.length} order(s) are currently delayed (${fmtPct(delayed.length/Math.max(1,RAW.orders.length))} of all orders).`
+                );
+            const totalMistakes = RAW.mistakes.length;
+            if (totalMistakes) insightLines.push(
+                `<strong>Quality issues:</strong> ${totalMistakes} mistake(s) recorded across ${new Set(RAW.mistakes.map(m=>m.person)).size} people.`
+                );
+            const doneWeekly = RAW.weekly.reduce((sum, w) => sum + w.ontime, 0);
+            if (doneWeekly) insightLines.push(
+                `<strong>Weekly performance:</strong> ${doneWeekly} orders delivered on time across all weeks (${fmtPct(doneWeekly/Math.max(1, RAW.weekly.reduce((s,w)=>s+w.orders,0)))} on-time).`
+                );
+            if (dupReport.length) insightLines.push(
+                `<strong>Data quality:</strong> ${dupReport.length} client name(s) had inconsistent spelling/casing and were automatically merged.`
+                );
+            if (!insightLines.length) insightLines.push('No material risks detected — operations look healthy.');
+            list.innerHTML = insightLines.map(t => `<div class="insight-item">${t}</div>`).join('');
+
+            // Duplicate names
+            const dupList = document.getElementById('dupNamesList');
+            if (dupReport.length) {
+                dupList.innerHTML = dupReport.slice(0, 20).map(d =>
+                    `<div class="insight-item"><strong>${d.canonical}</strong> Merged from: ${d.variants.map(v=>`"${v}"`).join(', ')}</div>`
+                    ).join('');
+            } else {
+                dupList.innerHTML = '<div class="insight-item">No duplicate name spellings detected.</div>';
+            }
+
+            // Live sync report
+            const syncBox = document.getElementById('liveSyncReport');
+            const syncTag = document.getElementById('liveSyncTag');
+            if (lastSyncDiff) {
+                if (syncTag) syncTag.textContent = 'as of ' + lastSyncDiff.after.at.toLocaleTimeString('en-IN', { hour: '2-digit',
+                    minute: '2-digit' });
+                const d = lastSyncDiff;
+                syncBox.innerHTML = `
+              <div class="insight-item"><strong>Orders:</strong> ${d.after.orders} total (${d.newOrders>=0?'+':''}${d.newOrders})</div>
+              <div class="insight-item"><strong>Delayed:</strong> ${d.after.delayed} (${d.newDelayed>=0?'+':''}${d.newDelayed})</div>
+              <div class="insight-item"><strong>Completed:</strong> ${d.after.complete} (${d.newComplete>=0?'+':''}${d.newComplete})</div>
+              <div class="insight-item"><strong>Mistakes logged:</strong> ${d.after.mistakes} (${d.newMistakes>=0?'+':''}${d.newMistakes})</div>
+              <div class="insight-item"><strong>Weekly entries:</strong> ${d.after.weeklyEntries} (${d.newWeeklyEntries>=0?'+':''}${d.newWeeklyEntries})</div>
+            `;
+            } else {
+                if (syncTag) syncTag.textContent = 'not synced yet';
+                syncBox.innerHTML = '<div class="insight-item">No live sync has completed yet — showing bundled sample data.</div>';
+            }
+        }
+
+        // ============================================================
+        //  CLOCK
+        // ============================================================
+        function updateClock() {
+            const el = document.getElementById('liveClock');
+            if (el) { const now = new Date();
+                el.textContent = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }); }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ============================================================
+        //  FILTER EVENTS
+        // ============================================================
+        document.getElementById('statusFilter').addEventListener('change', e => { statusFilter = e.target.value;
+            renderAll(); });
+        document.getElementById('globalSearch').addEventListener('input', e => { searchTerm = e.target.value.trim()
+                .toLowerCase();
+            renderAll(); });
+        document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+            statusFilter = 'all';
+            searchTerm = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('globalSearch').value = '';
+            renderAll();
+        });
+        document.getElementById('applyFiltersBtn').addEventListener('click', () => renderAll());
+
+        // ============================================================
+        //  TABS
+        // ============================================================
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('page-' + tab.dataset.page).classList.add('active');
+            });
+        });
+
+        // ============================================================
+        //  PRODUCT CHIPS (auto-generated from orders)
+        // ============================================================
+        function initProductChips() {
+            const allProducts = [...new Set(RAW.orders.map(o => o.product).filter(Boolean))];
+            activeProducts = new Set(allProducts);
+            const chipRow = document.querySelector('.filterbar .chip-row');
+            if (!chipRow) {
+                // create if missing
+                const group = document.querySelector('.filter-group:last-child');
+                const row = document.createElement('div');
+                row.className = 'chip-row';
+                group.parentNode.insertBefore(row, group.nextSibling);
+                chipRow = row;
+            }
+            chipRow.innerHTML = '';
+            allProducts.forEach(p => {
+                const chip = document.createElement('div');
+                chip.className = 'chip' + (activeProducts.has(p) ? ' on' : '');
+                chip.textContent = p;
+                chip.addEventListener('click', () => {
+                    if (activeProducts.has(p)) { activeProducts.delete(p);
+                        chip.classList.remove('on'); } else { activeProducts.add(p);
+                        chip.classList.add('on'); }
+                    renderAll();
+                });
+                chipRow.appendChild(chip);
+            });
+        }
+        initProductChips();
+
+        // ============================================================
+        //  SHEET CONTROLS (standalone)
+        // ============================================================
+        document.getElementById('loadBtn').addEventListener('click', () => {
+            const url = document.getElementById('sheetUrlInput').value;
+            loadProductionData(url);
+        });
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const url = document.getElementById('sheetUrlInput').value.trim();
+            if (!url) { setSheetStatus('Please paste a valid URL.', true); return; }
+            localStorage.setItem('productionSheetUrl', url);
+            setSheetStatus('URL saved. Click Load to fetch data.');
+        });
+        // Auto-load saved URL
+        const saved = localStorage.getItem('productionSheetUrl');
+        if (saved) {
+            document.getElementById('sheetUrlInput').value = saved;
+            // optionally auto-load
+            loadProductionData(saved);
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            const url = document.getElementById('sheetUrlInput').value;
+            if (url) loadProductionData(url);
+        }, 30000);
+
+        // ============================================================
+        //  INITIAL RENDER
+        // ============================================================
+        renderAll();
+    </script>
+
+</body>
+</html>
